@@ -52,7 +52,7 @@ public class FineList
         head.lock.lock();
         Node pred = head;
         try {
-            Node curr = pred.next();
+            Node curr = pred.next;
             curr.lock.lock();
             try {
                 while (curr.value < value) {
