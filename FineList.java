@@ -15,66 +15,92 @@ public class FineList
     public boolean add(int value) 
     {
         // Use hand-over-hand locking.
-        int key = item.hashCode();
-        head.lock();
+
+        head.lock.lock();
         Node pred = head;
+        
         try {
             Node curr = pred.next;
-            curr.lock();
+            curr.lock.lock();
             try {
-                while (curr.key < key) {
-                    pred.unlock();
+                //hand-over-hand
+                //dont release pred until curr is locked
+                while (curr.value < value) {
+                    pred.lock.unlock();
                     pred = curr;
                     curr = curr.next;
-                    curr.lock();
+                    curr.lock.lock(); //lock before moving on
                 }
-                if (curr.key == key) {
-                    return false;
+                if (curr.value == value) {
+                    return false; //already there
                 }
-                Node newNode = new Node(item);
+
+                Node newNode = new Node(value);
                 newNode.next = curr;
                 pred.next = newNode;
                 return true;
             } finally {
-                curr.unlock();
+                curr.lock.unlock();
             }
         } finally {
-            pred.unlock();
+            pred.lock.unlock();
         }
     }
 
     public boolean remove(int value) 
     {
-         Node pred = null, curr = null;
-        int key = item.hashCode();
-        head.lock();
+        head.lock.lock();
+        Node pred = head;
         try {
-            pred = head;
-            curr = pred.next;
-            curr.lock();
+            Node curr = pred.next();
+            curr.lock.lock();
             try {
-                while (curr.key < key) {
-                    pred.unlock();
+                while (curr.value < value) {
+                    pred.lock.unlock();
                     pred = curr;
                     curr = curr.next;
-                    curr.lock();
+                    curr.lock.lock();
                 }
-                if (curr.key == key) {
+
+                if (curr.value == value) {
                     pred.next = curr.next;
                     return true;
                 }
                 return false;
+
             } finally {
-                curr.unlock();
+                curr.lock.unlock();
             }
         } finally {
-            pred.unlock();
+            pred.lock.unlock();
         }
     }
 
     public boolean contains(int value) 
     {
-        // TODO
-        return false;
+        head.lock.lock();
+        Node pred = head;
+
+        try{
+            Node curr = pred.next;
+            curr.lock.lock();
+
+            try{
+            while(curr.value < value){
+                pred.lock.unlock();
+                    pred = curr;
+                    curr = curr.next;
+                    curr.lock.lock();
+            }
+            return curr.value==value;
+            }
+            finally{
+                curr.lock.unlock();
+            }
+        }
+        finally{
+            pred.lock.unlock();
+        }
+        
     }
 }
